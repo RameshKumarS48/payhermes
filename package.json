@@ -11,6 +11,9 @@
     "migrate:rollback": "cd backend && npx knex migrate:rollback",
     "seed": "cd backend && npx knex seed:run"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
