@@ -5,11 +5,11 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && npx knex migrate:latest && node src/index.js",
     "migrate": "cd backend && npx knex migrate:latest",
     "migrate:rollback": "cd backend && npx knex migrate:rollback",
-    "seed": "cd backend && npx knex seed:run",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "seed": "cd backend && npx knex seed:run"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

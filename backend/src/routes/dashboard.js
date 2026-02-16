@@ -17,12 +17,12 @@ router.get('/', async (req, res, next) => {
       .limit(10);
 
     const upcomingAppointments = await db('appointments')
-      .where({ business_id: req.businessId })
-      .where('start_time', '>=', new Date())
-      .whereIn('status', ['scheduled', 'confirmed'])
       .leftJoin('leads', 'appointments.lead_id', 'leads.id')
+      .where('appointments.business_id', req.businessId)
+      .where('appointments.start_time', '>=', new Date())
+      .whereIn('appointments.status', ['scheduled', 'confirmed'])
       .select('appointments.*', 'leads.name as lead_name', 'leads.phone as lead_phone')
-      .orderBy('start_time', 'asc')
+      .orderBy('appointments.start_time', 'asc')
       .limit(5);
 
     const funnelStats = await db('funnels')

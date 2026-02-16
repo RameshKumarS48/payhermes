@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const env = require('./config/env');
@@ -23,7 +24,7 @@ app.use('/api', apiLimiter);
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/funnels', funnelRoutes);
 app.use('/api/leads', leadRoutes);
@@ -33,10 +34,19 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingsRoutes);
 
+// Serve frontend in production
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
 app.use(errorHandler);
 
-app.listen(env.port, () => {
-  logger.info(`PayHermes backend running on port ${env.port}`);
+const port = process.env.PORT || env.port;
+app.listen(port, '0.0.0.0', () => {
+  logger.info(`PayHermes running on port ${port}`);
 });
 
 module.exports = app;

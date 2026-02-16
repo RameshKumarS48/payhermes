@@ -29,8 +29,8 @@ exports.seed = async function (knex) {
     }),
   }).returning('*');
 
-  // User (password: demo1234)
-  const hash = await bcrypt.hash('demo1234', 12);
+  // User (password: Hermes@2026!secure)
+  const hash = await bcrypt.hash('Hermes@2026!secure', 12);
   await knex('users').insert({
     business_id: business.id,
     email: 'demo@acmesolar.com',
