@@ -17,7 +17,11 @@ const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
-app.use(cors({ origin: env.frontendUrl, credentials: true }));
+app.set('trust proxy', 1);
+app.use(cors({
+  origin: env.nodeEnv === 'production' ? true : env.frontendUrl,
+  credentials: true,
+}));
 app.use(express.json({ limit: '1mb' }));
 app.use('/api', apiLimiter);
 
