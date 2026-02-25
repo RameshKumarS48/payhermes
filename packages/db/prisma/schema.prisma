@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ TENANT & AUTH ============
+
+model Tenant {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  plan          Plan      @default(FREE)
+  twilioSid     String?
+  twilioAuth    String?
+  twilioPhone   String?
+  deepgramKey   String?
+  sheetsCredJson String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  users         User[]
+  agents        Agent[]
+  calls         Call[]
+  apiKeys       ApiKey[]
+
+  @@index([slug])
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String
+  passwordHash  String
+  name          String
+  role          UserRole  @default(MEMBER)
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  keyHash       String    @unique
+  label         String
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  lastUsedAt    DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId])
+}
+
+// ============ AGENTS ============
+
+model Agent {
+  id            String       @id @default(cuid())
+  name          String
+  description   String?
+  useCase       AgentUseCase
+  language      String       @default("en-US")
+  voiceId       String       @default("aura-2-thalia-en")
+  systemPrompt  String?
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  workflows     Workflow[]
+  calls         Call[]
+
+  @@index([tenantId])
+}
+
+enum AgentUseCase {
+  CUSTOMER_SUPPORT
+  APPOINTMENT_BOOKING
+  ORDER_STATUS
+  PAYMENT_REMINDER
+  OTP_VERIFICATION
+  SURVEY
+  LEAD_QUALIFICATION
+  CUSTOM
+}
+
+// ============ WORKFLOWS ============
+
+model Workflow {
+  id            String          @id @default(cuid())
+  name          String
+  agentId       String
+  agent         Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status        WorkflowStatus  @default(DRAFT)
+  version       Int             @default(1)
+  parentId      String?
+  graph         Json
+  variables     Json?
+  metadata      Json?
+  publishedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  calls         Call[]
+
+  @@index([agentId])
+  @@index([agentId, status])
+}
+
+enum WorkflowStatus {
+  DRAFT
+  SANDBOX
+  PRODUCTION
+  ARCHIVED
+}
+
+// ============ CALLS ============
+
+model Call {
+  id              String        @id @default(cuid())
+  twilioCallSid   String?       @unique
+  direction       CallDirection
+  status          CallStatus    @default(INITIATED)
+  fromNumber      String
+  toNumber        String
+  agentId         String
+  agent           Agent         @relation(fields: [agentId], references: [id])
+  workflowId      String?
+  workflow        Workflow?     @relation(fields: [workflowId], references: [id])
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  durationSeconds Int?
+  recordingUrl    String?
+  transcript      Json?
+  metadata        Json?
+  startedAt       DateTime      @default(now())
+  endedAt         DateTime?
+  createdAt       DateTime      @default(now())
+
+  events          CallEvent[]
+
+  @@index([tenantId])
+  @@index([agentId])
+  @@index([tenantId, startedAt])
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  INITIATED
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  NO_ANSWER
+  BUSY
+}
+
+model CallEvent {
+  id            String    @id @default(cuid())
+  callId        String
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  nodeId        String?
+  eventType     String
+  payload       Json
+  timestamp     DateTime  @default(now())
+
+  @@index([callId])
+  @@index([callId, timestamp])
+}
+
+// ============ OUTBOUND CAMPAIGNS ============
+
+model OutboundCampaign {
+  id            String         @id @default(cuid())
+  name          String
+  agentId       String
+  tenantId      String
+  status        CampaignStatus @default(PENDING)
+  contacts      Json
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+
+  @@index([tenantId])
+}
+
+enum CampaignStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+// ============ SHEET CONNECTIONS ============
+
+model SheetConnection {
+  id              String    @id @default(cuid())
+  name            String
+  tenantId        String
+  spreadsheetId   String
+  sheetName       String
+  credentialRef   String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([tenantId])
+}

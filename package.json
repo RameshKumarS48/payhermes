@@ -1,0 +1,17 @@
+{
+  "name": "voiceflow",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:migrate": "pnpm --filter @voiceflow/db prisma migrate dev",
+    "db:generate": "pnpm --filter @voiceflow/db prisma generate",
+    "db:seed": "pnpm --filter @voiceflow/db prisma db seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
