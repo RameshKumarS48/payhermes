@@ -22,7 +22,8 @@ COPY packages/ packages/
 COPY apps/ apps/
 COPY server.ts ./
 
-# Generate Prisma client
+# Generate Prisma client (dummy URL - generate doesn't connect to DB)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN cd packages/db && npx prisma generate
 
 # Build Next.js (standalone output, API calls go to same origin)
@@ -47,8 +48,9 @@ COPY apps/web/package.json apps/web/
 # Install ALL dependencies (tsx needed at runtime)
 RUN pnpm install --frozen-lockfile
 
-# Copy Prisma schema and regenerate
+# Copy Prisma schema and regenerate (dummy URL - generate doesn't connect to DB)
 COPY packages/db/prisma packages/db/prisma
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN cd packages/db && npx prisma generate
 
 # Copy source (tsx runs TypeScript directly at runtime)
