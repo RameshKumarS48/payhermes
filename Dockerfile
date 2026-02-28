@@ -23,11 +23,12 @@ COPY apps/ apps/
 COPY server.ts ./
 
 # Generate Prisma client (dummy URL - generate doesn't connect to DB)
+# Use pnpm exec to run project-local prisma v6, NOT npx which grabs v7
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-RUN cd packages/db && npx prisma generate
+RUN cd packages/db && pnpm exec prisma generate
 
 # Build Next.js (standalone output, API calls go to same origin)
-RUN cd apps/web && NEXT_PUBLIC_API_URL="" npx next build
+RUN cd apps/web && NEXT_PUBLIC_API_URL="" pnpm exec next build
 
 # ============ Production Stage ============
 FROM node:20-alpine AS runner
@@ -51,7 +52,7 @@ RUN pnpm install --frozen-lockfile
 # Copy Prisma schema and regenerate (dummy URL - generate doesn't connect to DB)
 COPY packages/db/prisma packages/db/prisma
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-RUN cd packages/db && npx prisma generate
+RUN cd packages/db && pnpm exec prisma generate
 
 # Copy source (tsx runs TypeScript directly at runtime)
 COPY packages/shared/src packages/shared/src
