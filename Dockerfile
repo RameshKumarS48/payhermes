@@ -14,7 +14,7 @@ COPY packages/db/package.json packages/db/
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 
-# Install dependencies
+# Install dependencies (include devDeps for prisma, next, etc.)
 RUN pnpm install --frozen-lockfile
 
 # Copy all source files
@@ -23,7 +23,6 @@ COPY apps/ apps/
 COPY server.ts ./
 
 # Generate Prisma client (dummy URL - generate doesn't connect to DB)
-# Use pnpm exec to run project-local prisma v6, NOT npx which grabs v7
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN cd packages/db && pnpm exec prisma generate
 
@@ -37,8 +36,6 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
 # Copy workspace config
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/shared/package.json packages/shared/
@@ -46,13 +43,17 @@ COPY packages/db/package.json packages/db/
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 
-# Install ALL dependencies (tsx needed at runtime)
+# Install ALL dependencies first (prisma, tsx needed at build/runtime)
+# NODE_ENV not set yet so devDeps are included
 RUN pnpm install --frozen-lockfile
 
-# Copy Prisma schema and regenerate (dummy URL - generate doesn't connect to DB)
+# Copy Prisma schema and generate client
 COPY packages/db/prisma packages/db/prisma
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN cd packages/db && pnpm exec prisma generate
+
+# Now set production mode
+ENV NODE_ENV=production
 
 # Copy source (tsx runs TypeScript directly at runtime)
 COPY packages/shared/src packages/shared/src
