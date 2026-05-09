@@ -1,20 +1,16 @@
 {
   "name": "payhermes",
   "private": true,
-  "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
-    "start": "cd backend && npx knex migrate:latest && node src/index.js",
-    "migrate": "cd backend && npx knex migrate:latest",
-    "migrate:rollback": "cd backend && npx knex migrate:rollback",
-    "seed": "cd backend && npx knex seed:run"
-  },
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "type-check": "pnpm --filter web type-check"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "typescript": "^5.4.5"
   }
 }

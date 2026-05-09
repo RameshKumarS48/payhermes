@@ -1,0 +1,10 @@
+{
+  "name": "@payhermes/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/workflow-schema.ts",
+  "types": "./src/workflow-schema.ts",
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
