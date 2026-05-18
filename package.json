@@ -7,8 +7,9 @@
   },
   "scripts": {
     "dev": "pnpm --filter web dev",
+    "dev:server": "pnpm --filter @payhermes/server dev",
     "build": "pnpm --filter web build",
-    "type-check": "pnpm --filter web type-check"
+    "type-check": "pnpm -r type-check"
   },
   "devDependencies": {
     "typescript": "^5.4.5"
